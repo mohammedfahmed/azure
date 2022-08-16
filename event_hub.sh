@@ -11,6 +11,7 @@ $recFunctionAppName="ceo-ds-rec-app"
 # Login to azure 
 
 az login
+
 az account set --subscription dcfb8e69-724f-40a6-8580-7e8add073db9
 
 # Step 1: Create EventHub
@@ -48,7 +49,23 @@ func init $sendFunctionAppName –python
 # Create the Function files
 
 cd $sendFunctionAppName
+
 func new --name send-eventhub --template "Timer trigger" 
 
 # Update the __init__.py and function.json files
 
+# Create the Function App
+
+az functionapp create --consumption-plan-location $location  --resource-group $resourceGroup --runtime python --runtime-version 3.9 --functions-version 4 --name $sendFunctionAppName --os-type linux --storage-account moestorageaccount
+
+# Get the connection string
+
+$ehconnection = Get-Content ..\ehconnection.txt
+
+# Define the connection string in the App settings  
+
+az functionapp config appsettings set --name $sendFunctionAppName --resource-group $resourceGroup --settings ehconnection=$ehconnection  
+
+# Publish the Function App to Azure
+
+func azure functionapp publish $sendFunctionAppName
